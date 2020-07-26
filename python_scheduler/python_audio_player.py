@@ -7,6 +7,7 @@ import logging
 import calendar
 import simpleaudio as sa
 from datetime import date
+from logger_utility import log_message
 
 
 logging.basicConfig(level="DEBUG")
@@ -35,7 +36,7 @@ class AudioScheduler:
                 random_index = random.randint(0, (total_bhavgeets-1))
                 selected_bhavgeet = all_bhavgeets[random_index]
                 if '_skip' in selected_bhavgeet.lower():
-                    logger.debug("Skipping {} ".format(selected_bhavgeet))
+                    log_message("Skipping {} ".format(selected_bhavgeet), 'debug')
                     continue
                 else:
                     selected_bhavgeets.append(os.path.join(bhavgeet_root_path, folder, selected_bhavgeet))
@@ -48,11 +49,12 @@ class AudioScheduler:
         day_of_week = calendar.day_name[date.today().weekday()].lower()
         stotra_day_path = os.path.join(stotras_root_path, day_of_week)
         if not os.path.exists(stotra_day_path):
-            logger.warning("Stotra path {} could not be found".format(stotra_day_path))
+            log_message("Stotra path {} could not be found".format(
+                stotra_day_path), 'warning')
             return []
         stotras = os.listdir(stotra_day_path)
         if len(stotras) <= 0:
-            logger.warning("Stotra folder {} is empty".format(stotra_day_path))
+            log_message("Stotra folder {} is empty".format(stotra_day_path), 'warning')
         random_index = random.randint(0, (len(stotras)-1))
         selected_stotra = stotras[random_index]
         return os.path.join(stotra_day_path, selected_stotra)
@@ -60,35 +62,28 @@ class AudioScheduler:
     def play_file(self, file_path):
         p = vlc.MediaPlayer("file://{}".format(file_path))
         ret = p.play()
-        # print(p)
-        # print(ret)
-        # print(p.is_playing())
         time.sleep(self.pooling_duration)
-        # print(p.is_playing())
         while p.is_playing():
-            print("Playing")
+            log_message("Playing", 'info')
             time.sleep(self.pooling_duration)
-            # break
-        print("Finishing the play")
+            break
+        log_message("Finishing the play", 'info')
         p.release()
         return
     
     def start_playlist(self):
         playlist = [self.retrieve_stotra_path()] + self.retrieve_bhavgeet_paths()
-        logger.info("Today date {}, playlist: {}".format(date.today(), playlist))
+        log_message("Today date {}, playlist: {}".format(date.today(), playlist), 'info')
         for file_ in playlist:
             filename, file_extension = os.path.splitext(file_)
             file_path = os.path.join(self.folder_path, file_)
-            print(file_extension.lower())
             if file_extension.lower() in ['.mp3', '.wav']:
-                logger.info("Now started playing {} ".format(file_path))
+                log_message("Now started playing {} ".format(file_path), 'info')
                 try:
                     self.play_file(file_path)
+                    # pass
                 except Exception as e:
-                    if self.debug:
-                        logger.exception("Ran into error {} while playing {}".format(str(e), file_path))
-                    else:
-                        logger.error("Ran into error {} while playing {}".format(str(e), file_path))
-                        continue
+                    log_message("Ran into error {} while playing {}".format(str(e), file_path), 'error')
+                    continue
             else:
-                logger.warning("Skipping {} since it is not an MP3".format(file_path))
+                log_message("Skipping {} since it is not an MP3".format(file_path), 'warning')
