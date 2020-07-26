@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 morning_scheuler = CronTrigger(hour=7, minute=30, second=00)
 sunday_kendra_schedular = CronTrigger(hour=10, minute=0, second=0, day_of_week='sun')
-test1_trigger = CronTrigger(hour=0, minute=31, second=00)
+test1_trigger = CronTrigger(hour=14, minute=22, second=00)
 test2_trigger = CronTrigger(hour=0, minute=27, second=00)
 
 
