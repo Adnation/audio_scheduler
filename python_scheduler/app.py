@@ -5,6 +5,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from entrypoint import audio_player_job
+from logger_utility import LOGGING_DIR
 
 app = Flask(__name__)
 
@@ -21,12 +22,14 @@ scheduler.add_job(audio_player_job, trigger=sunday_kendra_schedular)
 # scheduler.add_job(audio_player_job, trigger=test2_trigger)
 scheduler.start()
 
-
-@app.route("/home")
-def home():
+@app.route("/logs/", defaults={'lines': 200})
+@app.route("/logs/<lines>")
+def retrieve_logs(lines=200):
     """ Function for test purposes. """
-    return "Welcome Home :) !"
+    fp = open(os.path.join(LOGGING_DIR, 'audio_play.logs'))
+    # fp.read()
+    return "<pre>{}</pre>".format(fp.read())
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
