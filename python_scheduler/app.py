@@ -29,6 +29,6 @@ def retrieve_logs(lines=200):
     fp = open(os.path.join(LOGGING_DIR, 'audio_play.logs'))
     return "<pre>{}</pre>".format(fp.read())
 
-
+ 
 if __name__ == "__main__":
     app.run(debug=True)
