@@ -4,7 +4,7 @@ from flask import Flask
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from entrypoint import audio_player_job
+from entrypoint import audio_player_job, sunday_player_job
 from logger_utility import LOGGING_DIR
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ test2_trigger = CronTrigger(hour=0, minute=27, second=00)
 
 scheduler = BackgroundScheduler(daemon=True)
 scheduler.add_job(audio_player_job, trigger=morning_scheuler)
-scheduler.add_job(audio_player_job, trigger=sunday_kendra_schedular)
+scheduler.add_job(sunday_player_job, trigger=sunday_kendra_schedular)
 # scheduler.add_job(audio_player_job, trigger=test1_trigger)
 # scheduler.add_job(audio_player_job, trigger=test2_trigger)
 scheduler.start()
@@ -27,7 +27,6 @@ scheduler.start()
 def retrieve_logs(lines=200):
     """ Function for test purposes. """
     fp = open(os.path.join(LOGGING_DIR, 'audio_play.logs'))
-    # fp.read()
     return "<pre>{}</pre>".format(fp.read())
 
 
