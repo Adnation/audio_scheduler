@@ -42,7 +42,7 @@ class AudioScheduler:
                 random_index = random.randint(0, (total_bhavgeets-1))
                 selected_bhavgeet = all_bhavgeets[random_index]
                 if '_skip' in selected_bhavgeet.lower():
-                    log_message("Skipping {} ".format(selected_bhavgeet), 'debug')
+                    # log_message("Skipping {} ".format(selected_bhavgeet), 'debug')
                     continue
                 else:
                     selected_bhavgeets.append(os.path.join(bhavgeet_root_path, folder, selected_bhavgeet))
@@ -71,8 +71,8 @@ class AudioScheduler:
         ret = p.play()
         time.sleep(self.pooling_duration)
         while p.is_playing():
-            log_message("Playing", 'info')
-            time.sleep(self.pooling_duration)
+            # log_message("Playing", 'info')
+            time.sleep(self.pooling_duration + 60)
             # break
         log_message("Finishing the play", 'info')
         p.release()
@@ -130,7 +130,7 @@ class AudioScheduler:
         if datetime.now() < break_time:
             raise TimeToStopError("Time to start Kendra")
         while p.is_playing():
-            log_message("Playing", 'info')
+            # log_message("Playing", 'info')
             time.sleep(self.pooling_duration)
             if datetime.now() < break_time:
                 raise TimeToStopError("Time to start Kendra")
