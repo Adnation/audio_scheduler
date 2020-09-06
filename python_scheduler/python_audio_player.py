@@ -32,7 +32,7 @@ class AudioScheduler:
     def retrieve_bhavgeet_paths(self):
         bhavgeet_root_path = "/home/pi/vlc_scheduler/audio_content/bhavgeet"
         all_bhavgeet_folders = os.listdir(bhavgeet_root_path)
-        total_bhavgeet_folder = len(all_bhavgeet_folders)
+        # total_bhavgeet_folder = len(all_bhavgeet_folders)
         selected_folders = random.choices(all_bhavgeet_folders, k=self.max_bhavgeets)
         selected_bhavgeets = []
         for folder in selected_folders:
@@ -64,7 +64,7 @@ class AudioScheduler:
             return []
         random_index = random.randint(0, (len(stotras)-1))
         selected_stotra = stotras[random_index]
-        return os.path.join(stotra_day_path, selected_stotra)
+        return [os.path.join(stotra_day_path, selected_stotra)]
 
     def play_file(self, file_path):
         p = vlc.MediaPlayer("file://{}".format(file_path))
@@ -79,7 +79,9 @@ class AudioScheduler:
         return
     
     def start_playlist(self):
-        playlist = [self.retrieve_stotra_path()] + self.retrieve_bhavgeet_paths()
+        playlist = []
+        playlist.extend(self.retrieve_stotra_path())
+        playlist.extend(self.retrieve_bhavgeet_paths())
         log_message("Today date {}, playlist: {}".format(date.today(), playlist), 'info')
         for file_ in playlist:
             filename, file_extension = os.path.splitext(file_)
@@ -98,12 +100,19 @@ class AudioScheduler:
     def select_sunday_bhavgeets(self, number_of_bhavegeets_to_play=5):
         bhavgeet_root_path = "/home/pi/vlc_scheduler/audio_content/bhavgeet"
         all_bhavgeet_folders = os.listdir(bhavgeet_root_path)
-        selected_folders = random.choices(all_bhavgeet_folders, number_of_bhavegeets_to_play)
+        selected_folders = random.choices(all_bhavgeet_folders, k=number_of_bhavegeets_to_play)
         selected_bhavgeets = []
         for folder in selected_folders:
             all_bhavgeets = os.listdir(os.path.join(bhavgeet_root_path, folder))
             total_bhavgeets = len(all_bhavgeets)
+
+            if not total_bhavgeets:
+                print(os.path.join(bhavgeet_root_path, folder))
+                continue
+
             while True:
+                if total_bhavgeets == 0:
+                    print(os.path.join(bhavgeet_root_path, folder))
                 random_index = random.randint(0, (total_bhavgeets-1))
                 selected_bhavgeet = all_bhavgeets[random_index]
                 if '_skip' in selected_bhavgeet.lower():
@@ -127,12 +136,18 @@ class AudioScheduler:
             minute=25,
             second=00
         )
-        if datetime.now() < break_time:
+        if datetime.now() >= break_time:
+            log_message("First condition to stop, current time: {}, break time: {}".format(datetime.now(), break_time), 'error')
+            p.stop()
+            p.release()
             raise TimeToStopError("Time to start Kendra")
         while p.is_playing():
             # log_message("Playing", 'info')
             time.sleep(self.pooling_duration)
-            if datetime.now() < break_time:
+            if datetime.now() >= break_time:
+                log_message("Second condition to stop, current time: {}, break time: {}".format(datetime.now(), break_time), 'error')
+                p.stop()
+                p.release()
                 raise TimeToStopError("Time to start Kendra")
         log_message("Finishing the play", 'info')
         p.release()
@@ -146,7 +161,7 @@ class AudioScheduler:
                 try:
                     self.play_sunday_file(file_path)
                 except TimeToStopError as e:
-                    log_message("Time to stop the player ", "info")
+                    log_message("Time to stop the player, current time: {}".format(datetime.now()), 'error')
                     break
                 except Exception as e:
                     log_message("Ran into error {} while playing {}".format(str(e), file_path), 'error')
